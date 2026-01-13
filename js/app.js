@@ -1003,7 +1003,15 @@ function loadData() {
         if (!stats.cardsPerDay || stats.cardsPerDay < 1) {
             stats.cardsPerDay = 10;
         }
+        if (!stats.theme) {
+            stats.theme = 'mario-sunshine';
+        }
+    } else {
+        stats.theme = 'mario-sunshine';
     }
+    
+    // Aplicar tema salvo
+    applyTheme(stats.theme || 'mario-sunshine');
 
     // Atualizar contagem de cards por nível
     stats.cardsByLevel = {
@@ -1521,8 +1529,10 @@ function closeResetModal() {
 function openSettingsModal() {
     const modal = document.getElementById('settingsModal');
     const input = document.getElementById('cardsPerDayInput');
-    if (modal && input) {
+    const themeSelect = document.getElementById('themeSelect');
+    if (modal && input && themeSelect) {
         input.value = stats.cardsPerDay || 10;
+        themeSelect.value = stats.theme || 'mario-sunshine';
         modal.classList.add('active');
         toggleMenu();
     }
@@ -1537,13 +1547,18 @@ function closeSettingsModal() {
 
 function saveSettings() {
     const input = document.getElementById('cardsPerDayInput');
-    if (!input) return;
+    const themeSelect = document.getElementById('themeSelect');
+    if (!input || !themeSelect) return;
     
     const cardsPerDay = parseInt(input.value);
+    const selectedTheme = themeSelect.value;
+    
     if (cardsPerDay > 0 && cardsPerDay <= 100) {
         stats.cardsPerDay = cardsPerDay;
+        stats.theme = selectedTheme;
         saveData();
         updateStats();
+        applyTheme(selectedTheme);
         
         // Atualizar goalMini
         const goalMini = document.getElementById('goalMini');
@@ -1553,6 +1568,14 @@ function saveSettings() {
         showNextCard();
     } else {
         alert('Por favor, insira um número entre 1 e 100.');
+    }
+}
+
+// Aplicar tema
+function applyTheme(themeName) {
+    const themeStylesheet = document.getElementById('themeStylesheet');
+    if (themeStylesheet) {
+        themeStylesheet.href = `css/themes/${themeName}.css`;
     }
 }
 
