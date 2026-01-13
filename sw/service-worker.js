@@ -1,4 +1,6 @@
-const CACHE_NAME = 'english365-v1';
+// Versão do cache - INCREMENTE ESTE NÚMERO quando fizer atualizações importantes
+const CACHE_VERSION = 'v2';
+const CACHE_NAME = `english365-${CACHE_VERSION}`;
 const urlsToCache = [
   './',
   './index.html',
@@ -11,62 +13,86 @@ const urlsToCache = [
 
 // Instalar Service Worker
 self.addEventListener('install', (event) => {
+  console.log('Service Worker: Instalando...');
+  // Força a ativação imediata do novo service worker
+  self.skipWaiting();
+  
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('Cache aberto');
+        console.log('Service Worker: Cache aberto -', CACHE_NAME);
         return cache.addAll(urlsToCache);
+      })
+      .catch((error) => {
+        console.error('Service Worker: Erro ao cachear arquivos:', error);
       })
   );
 });
 
 // Ativar Service Worker
 self.addEventListener('activate', (event) => {
+  console.log('Service Worker: Ativando...');
+  
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Removendo cache antigo:', cacheName);
+          // Remove todos os caches antigos que não correspondem à versão atual
+          if (cacheName !== CACHE_NAME && cacheName.startsWith('english365-')) {
+            console.log('Service Worker: Removendo cache antigo:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
+    }).then(() => {
+      // Força o controle imediato de todas as páginas
+      return self.clients.claim();
     })
   );
 });
 
 // Interceptar requisições
 self.addEventListener('fetch', (event) => {
+  // Ignorar requisições que não são GET
+  if (event.request.method !== 'GET') {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
-      .then((response) => {
-        // Retornar do cache se disponível, senão buscar na rede
-        if (response) {
-          return response;
-        }
-        return fetch(event.request).then((response) => {
-          // Verificar se a resposta é válida
-          if (!response || response.status !== 200 || response.type !== 'basic') {
-            return response;
-          }
+      .then((cachedResponse) => {
+        // Estratégia: Network First, depois Cache
+        // Isso garante que atualizações sejam sempre buscadas primeiro
+        return fetch(event.request)
+          .then((networkResponse) => {
+            // Verificar se a resposta é válida
+            if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+              // Se a rede falhar, usar cache se disponível
+              return cachedResponse || networkResponse;
+            }
 
-          // Clonar a resposta
-          const responseToCache = response.clone();
+            // Clonar a resposta para cache
+            const responseToCache = networkResponse.clone();
 
-          caches.open(CACHE_NAME)
-            .then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
+            // Atualizar cache com nova versão
+            caches.open(CACHE_NAME)
+              .then((cache) => {
+                cache.put(event.request, responseToCache);
+              });
 
-          return response;
-        });
-      })
-      .catch(() => {
-        // Se falhar, retornar página offline se for navegação
-        if (event.request.mode === 'navigate') {
-          return caches.match('./index.html');
-        }
+            return networkResponse;
+          })
+          .catch(() => {
+            // Se a rede falhar completamente, usar cache
+            if (cachedResponse) {
+              return cachedResponse;
+            }
+            
+            // Se for navegação e não houver cache, retornar index.html
+            if (event.request.mode === 'navigate') {
+              return caches.match('./index.html');
+            }
+          });
       })
   );
 });
