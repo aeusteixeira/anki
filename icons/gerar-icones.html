@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gerador de Ícones PWA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        canvas {
+            border: 1px solid #ddd;
+            margin: 1rem 0;
+        }
+        button {
+            padding: 1rem 2rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 0.5rem;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+    </style>
+</head>
+<body>
+    <h1>📚 Gerador de Ícones para PWA</h1>
+    <p>Clique nos botões abaixo para gerar e baixar os ícones automaticamente:</p>
+    
+    <div style="text-align: center; margin: 2rem 0;">
+        <canvas id="icon192" width="192" height="192" style="display: block; margin: 0 auto;"></canvas>
+        <button onclick="downloadIcon(192)" style="margin-top: 1rem;">💾 Baixar icon-192.png</button>
+    </div>
+    
+    <div style="text-align: center; margin: 2rem 0;">
+        <canvas id="icon512" width="512" height="512" style="display: block; margin: 0 auto;"></canvas>
+        <button onclick="downloadIcon(512)" style="margin-top: 1rem;">💾 Baixar icon-512.png</button>
+    </div>
+    
+    <div style="text-align: center; margin-top: 2rem;">
+        <button onclick="gerarTodos()" style="background: #28a745; font-size: 1.2rem; padding: 1rem 2rem;">
+            ✨ Gerar e Baixar Todos Automaticamente
+        </button>
+    </div>
+
+    <script>
+        function drawIcon(canvas, size) {
+            const ctx = canvas.getContext('2d');
+            
+            // Gradiente de fundo
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#667eea');
+            gradient.addColorStop(1, '#764ba2');
+            
+            // Fundo com bordas arredondadas
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            const radius = size * 0.2;
+            ctx.moveTo(radius, 0);
+            ctx.lineTo(size - radius, 0);
+            ctx.quadraticCurveTo(size, 0, size, radius);
+            ctx.lineTo(size, size - radius);
+            ctx.quadraticCurveTo(size, size, size - radius, size);
+            ctx.lineTo(radius, size);
+            ctx.quadraticCurveTo(0, size, 0, size - radius);
+            ctx.lineTo(0, radius);
+            ctx.quadraticCurveTo(0, 0, radius, 0);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Emoji principal (📚)
+            ctx.font = `${size * 0.6}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('📚', size / 2, size / 2 - size * 0.05);
+            
+            // Texto secundário (opcional, menor)
+            if (size >= 256) {
+                ctx.font = `bold ${size * 0.12}px Arial`;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                ctx.fillText('English', size / 2, size / 2 + size * 0.25);
+            }
+        }
+        
+        function downloadIcon(size) {
+            const canvas = document.getElementById(`icon${size}`);
+            canvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `icon-${size}.png`;
+                a.click();
+                URL.revokeObjectURL(url);
+            }, 'image/png');
+        }
+        
+        function gerarTodos() {
+            // Baixar ambos os ícones com um pequeno delay
+            downloadIcon(192);
+            setTimeout(() => {
+                downloadIcon(512);
+                alert('✅ Ícones gerados! Salve os arquivos na pasta icons/');
+            }, 500);
+        }
+        
+        // Desenhar ícones ao carregar
+        window.addEventListener('load', () => {
+            drawIcon(document.getElementById('icon192'), 192);
+            drawIcon(document.getElementById('icon512'), 512);
+        });
+    </script>
+</body>
+</html>
