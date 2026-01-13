@@ -1558,13 +1558,33 @@ function saveSettings() {
 
 // Fechar modal ao clicar fora
 document.addEventListener('click', function(e) {
+    // Fechar modais
     if (e.target.classList.contains('modal')) {
         e.target.classList.remove('active');
     }
-    if (e.target.classList.contains('menu-overlay')) {
+    
+    // Fechar menu ao clicar no overlay (apenas se for o overlay mesmo)
+    if (e.target.id === 'menuOverlay') {
         toggleMenu();
     }
 });
+
+// Prevenir fechamento do menu ao clicar nos botões do menu
+document.addEventListener('click', function(e) {
+    const sideMenu = document.getElementById('sideMenu');
+    const menuOverlay = document.getElementById('menuOverlay');
+    
+    // Se clicar em um botão do menu, não fechar o menu (ele fecha dentro da função)
+    if (e.target.closest('.menu-item')) {
+        // Não fazer nada, a função do botão já fecha o menu
+        return;
+    }
+    
+    // Se clicar dentro do menu mas não em um botão, não fechar
+    if (sideMenu && sideMenu.contains(e.target) && e.target !== menuOverlay && !e.target.closest('.menu-item')) {
+        e.stopPropagation();
+    }
+}, true);
 
 // Inicializar quando a página carregar
 init();

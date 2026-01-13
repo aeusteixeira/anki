@@ -3,10 +3,11 @@
     padding: 0;
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
+    font-family: 'Comic Neue', 'Comic Sans MS', 'Chalkboard SE', cursive, sans-serif !important;
 }
 
 body {
-    font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', cursive, sans-serif;
+    font-family: 'Comic Neue', 'Comic Sans MS', 'Chalkboard SE', cursive, sans-serif;
     background: linear-gradient(180deg, #87CEEB 0%, #FFD700 50%, #FFA500 100%);
     color: #333;
     min-height: 100vh;
